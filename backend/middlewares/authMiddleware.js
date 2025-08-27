@@ -3,38 +3,37 @@ const User = require("../models/user");
 const AsyncHandler = require("express-async-handler");
 
 const protect = AsyncHandler(async (req, res, next) => {
-  let token;
   const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "No autorizado: token faltante" });
-  }
-
-  try {
+  if (authHeader && authHeader.startsWith("Bearer ")) {
     const token = authHeader.split(" ")[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const usuario = await User.findById(decoded.id).select("-password");
-    if (!usuario)
-      return res.status(401).json({ message: "Usuario no encontrado" });
-    next();
-  } catch (error) {
-    console.error(error);
-    return res.status(401).json({ message: "Token inválido o expirado" });
-  }
-  if (!token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const usuario = await User.findById(decoded.id).select("-password");
+      if (!usuario) {
+        res.status(401);
+        throw new Error("Usuario no encontrado");
+      }
+      req.user = usuario; // Asignar usuario para el siguiente middleware
+      return next();
+    } catch (error) {
+      res.status(401);
+      throw new Error("Token inválido o expirado");
+    }
+  } else {
     res.status(401);
-    throw new Error("No autorizado(no token)");
+    throw new Error("No autorizado: token faltante");
   }
 });
 
 const autorizado = (...roles) => {
   return (req, res, next) => {
-    if (!req.user || !roles.includes(req.user.role)) {
+    if (req.user && roles.includes(req.user.rol)) {  
+      return next();
+    } else {
       res.status(403);
-      throw new Error("No esta autorizado(role)");
+      throw new Error("No está autorizado");
     }
-    next();
-  };  
+  };
 };
 
-module.exports = { protect, autorizado};
+module.exports = { protect, autorizado };

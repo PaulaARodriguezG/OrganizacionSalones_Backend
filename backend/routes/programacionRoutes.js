@@ -1,8 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { crearProgramacion}= require ('../controllers/programacionController');
-const { protect} = require ('../middlewares/authMiddleware');
 
-const routes = router.post('/', protect (['admin']), crearProgramacion);
+const { crearProgramacion, obtenerProgramaciones } = require('../controllers/programacionController');
+const { protect, autorizado } = require('../middlewares/authMiddleware');
 
-module.exports = routes;
+// Solo admin puede crear una programación
+router.post('/', protect, autorizado('admin'), crearProgramacion);
+
+// Solo admin puede listar programaciones
+router.get('/', protect, autorizado('admin'), obtenerProgramaciones);
+
+module.exports = router;

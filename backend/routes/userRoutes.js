@@ -1,15 +1,13 @@
 const express = require('express');
 const router = express.Router();
 
-const {crearUsuario, obtenerUsuarios}= require ('../controllers/userController');
-const {protect} = require ('../middlewares/authMiddleware');
+const { crearUsuario, obtenerUsuarios } = require('../controllers/userController');
+const { protect, autorizado } = require('../middlewares/authMiddleware');
 
-//solo admin crear ususario
-router.post('/', protect(['admin']), crearUsuario);
+// Solo admin puede crear un usuario
+router.post('/', protect, autorizado('admin'), crearUsuario);
 
-// solo admin listar usuarios
-router.get('/', protect(['admin']), obtenerUsuarios);
+// Solo admin puede listar usuarios
+router.get('/', protect, autorizado('admin'), obtenerUsuarios);
 
 module.exports = router;
-
-

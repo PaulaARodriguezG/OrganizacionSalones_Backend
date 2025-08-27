@@ -1,13 +1,13 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 
-const {crearSede, obtenerSedes}= require ('../controllers/sedeController');
-const {protect} = require ('../middlewares/authMiddleware');
+const { crearSede, obtenerSedes } = require("../controllers/sedeController");
+const { protect, autorizado } = require("../middlewares/authMiddleware");
 
-//solo admin crea sede
-router.post('/', protect(['admin']),crearSede);
+// Solo admin puede crear una sede
+router.post('/', protect, autorizado('admin'), crearSede);
 
-//usuarios visualizan sedes
-router.get('/', protect(), obtenerSedes);
+// Solo admin puede obtener la lista de sedes
+router.get('/', protect, autorizado('admin'), obtenerSedes);
 
 module.exports = router;
